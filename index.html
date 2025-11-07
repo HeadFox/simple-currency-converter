@@ -390,14 +390,17 @@
             const rateInfo = document.querySelector('.rate-info');
             const rate = exchangeRates[currentCurrency];
             const update = lastUpdate[currentCurrency];
-            
+
+            let dateText;
             if (update) {
                 const date = new Date(update);
-                rateInfo.innerHTML = `Taux: 1 ${currentCurrency} = ${rate.toFixed(6)} EUR<br>Mis à jour: ${date.toLocaleDateString('fr-FR')}<br><button class="refresh-btn" id="refreshBtn">🔄 Actualiser</button>`;
+                dateText = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
             } else {
-                rateInfo.innerHTML = `Taux: 1 ${currentCurrency} = ${rate.toFixed(6)} EUR<br>(30 octobre 2025)<br><button class="refresh-btn" id="refreshBtn">🔄 Actualiser</button>`;
+                dateText = '30 octobre 2025';
             }
-            
+
+            rateInfo.innerHTML = `Taux: 1 ${currentCurrency} = ${rate.toFixed(6)} EUR<br>(${dateText})<br><button class="refresh-btn" id="refreshBtn">🔄 Actualiser</button>`;
+
             // Ré-attacher l'événement au bouton refresh
             const newRefreshBtn = document.getElementById('refreshBtn');
             if (newRefreshBtn) {
