@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#667eea">
+    <title>TWD → EUR</title>
+    <link rel="manifest" href="/manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px 0 30px;
+        }
+
+        h1 {
+            color: white;
+            font-size: 36px;
+            margin-bottom: 8px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+        }
+
+        .converter {
+            background: white;
+            border-radius: 24px;
+            padding: 30px 24px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            color: #666;
+            margin-bottom: 12px;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input {
+            width: 100%;
+            padding: 20px;
+            border: none;
+            border-radius: 16px;
+            font-size: 56px;
+            font-weight: 700;
+            color: #333;
+            background: #f5f5f5;
+            text-align: center;
+        }
+
+        input:focus {
+            outline: none;
+            background: #ebebeb;
+        }
+
+        .arrow {
+            text-align: center;
+            font-size: 28px;
+            color: #ccc;
+            margin: 20px 0;
+            position: relative;
+        }
+
+        .swap-btn {
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(102, 126, 234, 0.1);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #667eea;
+        }
+
+        .swap-btn:active {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-50%) scale(0.95);
+        }
+
+        .result-section {
+            min-height: 140px;
+        }
+
+        .result {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 24px;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .result-label {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+
+        .result-amount {
+            font-size: 56px;
+            font-weight: 800;
+            margin: 8px 0;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .exchange-rate {
+            font-size: 13px;
+            opacity: 0.85;
+            margin-top: 12px;
+        }
+
+        .rate-info {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.75);
+            font-size: 13px;
+            margin-top: 20px;
+            padding: 0 20px;
+            position: relative;
+        }
+
+        .refresh-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: none;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 11px;
+            color: white;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .refresh-btn:active {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(0.95);
+        }
+
+        .refresh-btn.loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .version-info {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 11px;
+            margin-top: 12px;
+            padding: 0 20px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .currency-selector {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 16px;
+            padding: 0 20px;
+        }
+
+        .currency-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .currency-btn:active {
+            transform: scale(0.95);
+        }
+
+        .currency-btn.active {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .currency-btn span {
+            font-size: 12px;
+            color: white;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💱 TWD → EUR</h1>
+            <p class="subtitle">Convertisseur instantané</p>
+        </div>
+
+        <div class="converter">
+            <div class="input-section">
+                <label>DOLLAR TAÏWANAIS</label>
+                <input 
+                    type="number" 
+                    id="twdAmount" 
+                    inputmode="decimal"
+                    placeholder="100"
+                    autofocus
+                >
+            </div>
+
+            <div class="arrow">
+                ↓
+                <button class="swap-btn" id="swapBtn" title="Inverser">⇄</button>
+            </div>
+
+            <div class="result-section">
+                <label>EURO</label>
+                <div id="result">
+                    <div class="result">
+                        <div class="result-amount">€0.00</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="rate-info" id="rateInfo">
+            Taux: 1 TWD = 0.02803 EUR<br>
+            (30 octobre 2025)
+            <br>
+            <button class="refresh-btn" id="refreshBtn">🔄 Actualiser</button>
+        </div>
+
+        <div class="currency-selector">
+            <button class="currency-btn active" id="twdBtn" title="Dollar Taïwanais">
+                🇹🇼 <span>TWD</span>
+            </button>
+            <button class="currency-btn" id="jpyBtn" title="Yen Japonais">
+                🇯🇵 <span>JPY</span>
+            </button>
+        </div>
+
+        <div class="version-info">
+            v1.3.1 • Build 02/11/2025
+        </div>
+    </div>
+
+    <script>
+        // Taux de change par défaut (30 octobre 2025)
+        const DEFAULT_RATES = {
+            TWD: 0.02803,  // 1 TWD = 0.02803 EUR
+            JPY: 0.005601  // 1 JPY = 0.005601 EUR
+        };
+        
+        const twdInput = document.getElementById('twdAmount');
+        const resultDiv = document.getElementById('result');
+        const swapBtn = document.getElementById('swapBtn');
+        const twdBtn = document.getElementById('twdBtn');
+        const jpyBtn = document.getElementById('jpyBtn');
+        const refreshBtn = document.getElementById('refreshBtn');
+
+        // Devise actuelle sélectionnée (récupérée du localStorage ou TWD par défaut)
+        let currentCurrency = localStorage.getItem('selectedCurrency') || 'TWD';
+        
+        // Mode de conversion (false = CURRENCY->EUR, true = EUR->CURRENCY)
+        let isReversed = false;
+
+        // Récupérer les taux depuis le localStorage ou utiliser les défauts
+        let exchangeRates = {
+            TWD: parseFloat(localStorage.getItem('exchangeRate_TWD')) || DEFAULT_RATES.TWD,
+            JPY: parseFloat(localStorage.getItem('exchangeRate_JPY')) || DEFAULT_RATES.JPY
+        };
+        let lastUpdate = {
+            TWD: localStorage.getItem('lastUpdate_TWD'),
+            JPY: localStorage.getItem('lastUpdate_JPY')
+        };
+
+        // Enregistrer le service worker pour le mode offline
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('Service Worker enregistré');
+                        
+                        // Vérifier les mises à jour immédiatement
+                        registration.update();
+                        
+                        // Vérifier les mises à jour
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    window.location.reload();
+                                }
+                            });
+                        });
+                    })
+                    .catch(err => {
+                        console.log('Service Worker erreur:', err);
+                    });
+            });
+        }
+
+        // Fonction pour mettre à jour le taux de change
+        async function updateExchangeRate(currency) {
+            try {
+                const response = await fetch(`https://api.frankfurter.app/latest?from=${currency}&to=EUR`);
+                const data = await response.json();
+                const newRate = data.rates.EUR;
+                
+                if (newRate && newRate > 0) {
+                    exchangeRates[currency] = newRate;
+                    localStorage.setItem(`exchangeRate_${currency}`, newRate.toString());
+                    localStorage.setItem(`lastUpdate_${currency}`, new Date().toISOString());
+                    lastUpdate[currency] = new Date().toISOString();
+                    console.log(`Taux ${currency} mis à jour:`, newRate);
+                    
+                    // Recalculer si l'utilisateur a déjà tapé quelque chose
+                    if (twdInput.value) {
+                        calculateConversion();
+                    }
+                    
+                    updateRateInfo();
+                }
+            } catch (error) {
+                console.log(`Erreur mise à jour taux ${currency}:`, error);
+            }
+        }
+
+        // Vérifier si on doit mettre à jour (une fois par jour)
+        function shouldUpdate(currency) {
+            if (!lastUpdate[currency]) return true;
+            
+            const lastUpdateDate = new Date(lastUpdate[currency]);
+            const now = new Date();
+            const hoursSinceUpdate = (now - lastUpdateDate) / (1000 * 60 * 60);
+            
+            // Mettre à jour si plus de 24h
+            return hoursSinceUpdate >= 24;
+        }
+
+        // Mettre à jour l'info du taux
+        function updateRateInfo() {
+            const rateInfo = document.querySelector('.rate-info');
+            const rate = exchangeRates[currentCurrency];
+            const update = lastUpdate[currentCurrency];
+            
+            if (update) {
+                const date = new Date(update);
+                rateInfo.innerHTML = `Taux: 1 ${currentCurrency} = ${rate.toFixed(6)} EUR<br>Mis à jour: ${date.toLocaleDateString('fr-FR')}<br><button class="refresh-btn" id="refreshBtn">🔄 Actualiser</button>`;
+            } else {
+                rateInfo.innerHTML = `Taux: 1 ${currentCurrency} = ${rate.toFixed(6)} EUR<br>(30 octobre 2025)<br><button class="refresh-btn" id="refreshBtn">🔄 Actualiser</button>`;
+            }
+            
+            // Ré-attacher l'événement au bouton refresh
+            const newRefreshBtn = document.getElementById('refreshBtn');
+            if (newRefreshBtn) {
+                newRefreshBtn.addEventListener('click', handleRefresh);
+            }
+        }
+
+        // Mettre à jour les labels
+        function updateLabels() {
+            const inputLabel = document.querySelector('.input-section label');
+            const resultLabel = document.querySelector('.result-section label');
+            
+            const currencyName = currentCurrency === 'TWD' ? 'DOLLAR TAÏWANAIS' : 'YEN JAPONAIS';
+            
+            if (isReversed) {
+                inputLabel.textContent = 'EURO';
+                resultLabel.textContent = currencyName;
+                twdInput.placeholder = '10';
+            } else {
+                inputLabel.textContent = currencyName;
+                resultLabel.textContent = 'EURO';
+                twdInput.placeholder = currentCurrency === 'TWD' ? '100' : '1000';
+            }
+        }
+
+        // Fonction de conversion
+        function calculateConversion() {
+            const inputAmount = parseFloat(twdInput.value) || 0;
+            const rate = exchangeRates[currentCurrency];
+            let outputAmount;
+            let outputCurrency;
+            let inputCurrency;
+
+            if (isReversed) {
+                // EUR -> CURRENCY
+                outputAmount = (inputAmount / rate).toFixed(2);
+                outputCurrency = currentCurrency === 'TWD' ? 'NT$' : '¥';
+                inputCurrency = 'EUR';
+            } else {
+                // CURRENCY -> EUR
+                outputAmount = (inputAmount * rate).toFixed(2);
+                outputCurrency = '€';
+                inputCurrency = currentCurrency;
+            }
+
+            const currencyName = currentCurrency === 'TWD' ? 'DOLLAR TAÏWANAIS' : 'YEN JAPONAIS';
+
+            resultDiv.innerHTML = `
+                <div class="result">
+                    <div class="result-label">${isReversed ? currencyName : 'EURO'}</div>
+                    <div class="result-amount">${outputCurrency}${outputAmount}</div>
+                    <div class="exchange-rate">
+                        ${inputAmount.toLocaleString('fr-FR')} ${inputCurrency}
+                    </div>
+                </div>
+            `;
+            
+            // Ajuster dynamiquement la taille de la police
+            adjustFontSize();
+        }
+        
+        // Fonction pour ajuster la taille de police dynamiquement
+        function adjustFontSize() {
+            const amountElement = document.querySelector('.result-amount');
+            if (!amountElement) return;
+            
+            const container = amountElement.parentElement;
+            const containerWidth = container.offsetWidth - 48; // padding de 24px de chaque côté
+            
+            // Cacher temporairement pour éviter l'effet de flash
+            amountElement.style.visibility = 'hidden';
+            
+            let fontSize = 56; // Taille de départ
+            amountElement.style.fontSize = fontSize + 'px';
+            
+            // Réduire progressivement jusqu'à ce que ça rentre
+            while (amountElement.scrollWidth > containerWidth && fontSize > 20) {
+                fontSize -= 2;
+                amountElement.style.fontSize = fontSize + 'px';
+            }
+            
+            // Réafficher une fois la bonne taille trouvée
+            amountElement.style.visibility = 'visible';
+        }
+
+        // Changer de devise
+        function switchCurrency(currency) {
+            currentCurrency = currency;
+            
+            // Sauvegarder le choix
+            localStorage.setItem('selectedCurrency', currency);
+            
+            // Mettre à jour les boutons actifs
+            twdBtn.classList.toggle('active', currency === 'TWD');
+            jpyBtn.classList.toggle('active', currency === 'JPY');
+            
+            // Réinitialiser le champ
+            twdInput.value = '';
+            
+            updateLabels();
+            updateRateInfo();
+            calculateConversion();
+            
+            // Mettre à jour si nécessaire
+            if (shouldUpdate(currency)) {
+                updateExchangeRate(currency);
+            }
+        }
+
+        // Événements boutons devises
+        twdBtn.addEventListener('click', () => switchCurrency('TWD'));
+        jpyBtn.addEventListener('click', () => switchCurrency('JPY'));
+
+        // Fonction pour gérer le refresh (réutilisable)
+        async function handleRefresh() {
+            const btn = document.getElementById('refreshBtn');
+            if (!btn) return;
+            
+            btn.classList.add('loading');
+            btn.textContent = '⏳ Actualisation...';
+            
+            // Forcer la mise à jour des deux devises
+            await Promise.all([
+                updateExchangeRate('TWD'),
+                updateExchangeRate('JPY')
+            ]);
+            
+            btn.classList.remove('loading');
+            btn.textContent = '✓ Mis à jour !';
+            
+            setTimeout(() => {
+                btn.textContent = '🔄 Actualiser';
+            }, 2000);
+        }
+
+        // Bouton refresh initial
+        refreshBtn.addEventListener('click', handleRefresh);
+
+        // Inverser la conversion
+        swapBtn.addEventListener('click', () => {
+            isReversed = !isReversed;
+            updateLabels();
+            calculateConversion();
+        });
+
+        // Conversion en temps réel
+        twdInput.addEventListener('input', calculateConversion);
+
+        // Au chargement
+        // Initialiser l'interface avec la devise sauvegardée
+        twdBtn.classList.toggle('active', currentCurrency === 'TWD');
+        jpyBtn.classList.toggle('active', currentCurrency === 'JPY');
+        
+        calculateConversion();
+        updateRateInfo();
+        updateLabels();
+        
+        // Focus automatique sur le champ - plusieurs tentatives pour mobile
+        // Méthode 1: immédiat
+        twdInput.focus();
+        
+        // Méthode 2: après un court délai
+        setTimeout(() => {
+            twdInput.focus();
+            twdInput.click(); // Simule un click pour iOS
+        }, 300);
+        
+        // Méthode 3: après le chargement complet
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                twdInput.focus();
+            }, 100);
+        });
+
+        // Vérifier et mettre à jour les taux si nécessaire
+        if (shouldUpdate('TWD')) {
+            updateExchangeRate('TWD');
+        }
+        if (shouldUpdate('JPY')) {
+            updateExchangeRate('JPY');
+        }
+
+        // Mettre à jour automatiquement quand l'app devient visible
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                if (shouldUpdate('TWD')) updateExchangeRate('TWD');
+                if (shouldUpdate('JPY')) updateExchangeRate('JPY');
+            }
+        });
+    </script>
+</body>
+</html>
